@@ -75,7 +75,7 @@ A command-line tool designed to assist developers in managing and interacting wi
 Launch the application using the following command, and **Add API Key at the tail**:
 
 ```bash
-python eng.py --api-key=sk-xxxxxxxxxx # you have to type in you Stima API Key
+python eng.py --api-key=sk-xxxxxxxxxx # you have to type your Stima API Key
 ```
 
 ### 🎮 Available Commands
