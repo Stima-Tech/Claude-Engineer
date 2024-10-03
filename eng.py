@@ -16,7 +16,7 @@ import re
 import argparse
 
 
-MODEL = "cow-3-5-sonnet-20240620"
+# MODEL = "cow-3-5-sonnet-20240620"
 # # Initialize OpenAI client
 # client = OpenAI(api_key="YOUR KEY")
 
@@ -402,7 +402,7 @@ def apply_edit_instructions(edit_instructions, original_files):
     return modified_files
 
 def chat_with_ai(user_message, is_edit_request=False, retry_count=0, added_files=None):
-    global last_ai_response, conversation_history
+    global last_ai_response, conversation_history, MODEL
     try:
         # Include added file contents and conversation history in the user message
         if added_files:
@@ -436,9 +436,9 @@ def chat_with_ai(user_message, is_edit_request=False, retry_count=0, added_files
             logging.info("Sending general query to AI.")
 
         response = client.chat.completions.create(
-            model=MODEL,
+            model=MODEL,  # 在這裡使用 MODEL 變量
             messages=messages,
-            max_completion_tokens=60000
+            max_tokens=60000  # 注意：這裡使用 max_tokens 而不是 max_completion_tokens
         )
         logging.info("Received response from AI.")
         last_ai_response = response.choices[0].message.content
@@ -459,18 +459,23 @@ def chat_with_ai(user_message, is_edit_request=False, retry_count=0, added_files
 
 
 def main():
-    global last_ai_response, conversation_history, client
+    global last_ai_response, conversation_history, client, MODEL
 
-    parser = argparse.ArgumentParser(description="Software engineer CLI")
+    parser = argparse.ArgumentParser(description="Stima Engineer CLI")
     parser.add_argument("--api_key", help="API key for OpenAI-compatible API")
+    parser.add_argument("--model", help="Model to use", default="claude-3-5-sonnet-20240620")
     args = parser.parse_args()
+    
+    # 定義全局 MODEL 變量
+    MODEL = args.model
 
+    # 初始化 OpenAI 客戶端
     client = OpenAI(
         base_url="https://api.stima.tech/v1",  
         api_key=args.api_key if args.api_key else "YOUR KEY"
     )
 
-    print(colored("Software engineer is ready to help you.", "cyan"))
+    print(colored(f"Stima engineer is ready to help you. Using model: {MODEL}", "cyan"))
     print("\nAvailable commands:")
     print(f"{colored('/edit', 'magenta'):<10} {colored('Edit files or directories (followed by paths)', 'dark_grey')}")
     print(f"{colored('/create', 'magenta'):<10} {colored('Create files or folders (followed by instructions)', 'dark_grey')}")

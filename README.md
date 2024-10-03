@@ -72,10 +72,11 @@ A command-line tool designed to assist developers in managing and interacting wi
 
 ## 📚 Usage
 
-Launch the application using the following command, and **Add API Key at the tail**:
+Launch the application using the following command, and **Add API Key and Model Name  at the tail**:
+If not specify model name, use **claude-3-5-sonnet-20240620** as default model.
 
 ```bash
-python eng.py --api-key=sk-xxxxxxxxxx # you have to type your Stima API Key
+python eng.py --api-key=sk-xxxxxxxxxx  --model MODEL_NAME# you have to type your Stima API Key and the model name you need
 ```
 
 ### 🎮 Available Commands
