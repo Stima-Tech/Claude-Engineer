@@ -15,12 +15,6 @@ import difflib
 import re
 import argparse
 
-
-# MODEL = "cow-3-5-sonnet-20240620"
-# # Initialize OpenAI client
-# client = OpenAI(api_key="YOUR KEY")
-
-
 CREATE_SYSTEM_PROMPT = """You are an advanced Software engineer designed to create files and folders based on user instructions. Your primary objective is to generate the content of the files to be created as code blocks. Each code block should specify whether it's a file or folder, along with its path.
 
 When given a user request, perform the following steps:
@@ -73,7 +67,7 @@ body {
 console.log('Hello, World!');
 ```
 
-Ensure that each file and folder is correctly specified to facilitate seamless creation by the script."""
+Ensure that each file and folder is correctly specified to facilitate seamless creation by the script, and response in Traditional Chinese."""
 
 
 CODE_REVIEW_PROMPT = """You are an expert code reviewer. Your task is to analyze the provided code files and provide a comprehensive code review. For each file, consider:
@@ -158,7 +152,7 @@ def is_binary_file(file_path):
             if len(non_text) / len(chunk) > 0.30:
                 return True  # Consider binary if more than 30% non-text characters
     except Exception as e:
-        logging.error(f"Error reading file {file_path}: {e}")
+        logging.error(f"錯誤讀取檔案 {file_path}: {e}")
         return True  # Assume binary if an error occurs
     return False  # File is likely text
 
@@ -215,30 +209,31 @@ def add_file_to_context(file_path, added_files, action='to the chat context'):
     if os.path.isfile(file_path):
         # Exclude based on directory
         if any(ex_dir in file_path for ex_dir in excluded_dirs):
-            print(colored(f"Skipped excluded directory file: {file_path}", "yellow"))
-            logging.info(f"Skipped excluded directory file: {file_path}")
+            print(f"跳過排除的目錄檔案: {file_path}", "yellow")
+            logging.info(f"跳過排除的目錄檔案: {file_path}")
             return
         # Exclude based on gitignore patterns
         if gitignore_patterns and should_ignore(file_path, gitignore_patterns):
-            print(colored(f"Skipped file matching .gitignore pattern: {file_path}", "yellow"))
-            logging.info(f"Skipped file matching .gitignore pattern: {file_path}")
+            print(f"跳過匹配 .gitignore 模式的檔案: {file_path}", "yellow")
+            logging.info(f"跳過匹配 .gitignore 模式的檔案: {file_path}")
             return
         if is_binary_file(file_path):
-            print(colored(f"Skipped binary file: {file_path}", "yellow"))
-            logging.info(f"Skipped binary file: {file_path}")
+            print(f"跳過二進制檔案: {file_path}", "yellow")
+            logging.info(f"跳過二進制檔案: {file_path}")
             return
         try:
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
                 content = file.read()
                 added_files[file_path] = content
                 print(colored(f"Added {file_path} {action}.", "green"))
-                logging.info(f"Added {file_path} {action}.")
+                print(colored(f"添加 {file_path} {action}.", "green"))
+                logging.info(f"添加 {file_path} {action}.")
         except Exception as e:
-            print(colored(f"Error reading file {file_path}: {e}", "red"))
-            logging.error(f"Error reading file {file_path}: {e}")
+            print(colored(f"讀取檔案 {file_path} 時發生錯誤: {e}", "red"))
+            logging.error(f"讀取檔案 {file_path} 時發生錯誤: {e}")
     else:
-        print(colored(f"Error: {file_path} is not a file.", "red"))
-        logging.error(f"{file_path} is not a file.")
+        print(colored(f"Error: {file_path} 不是一個檔案.", "red"))
+        logging.error(f"{file_path} 不是一個檔案.")
 
 
 
@@ -248,7 +243,7 @@ def apply_modifications(new_content, file_path):
             old_content = file.read()
 
         if old_content.strip() == new_content.strip():
-            print(colored(f"No changes detected in {file_path}", "red"))
+            print(colored(f"在 {file_path} 中未檢測到更改", "red"))
             return True
 
         display_diff(old_content, new_content, file_path)
@@ -257,17 +252,17 @@ def apply_modifications(new_content, file_path):
         if confirm == 'yes':
             with open(file_path, 'w') as file:
                 file.write(new_content)
-            print(colored(f"Modifications applied to {file_path} successfully.", "green"))
-            logging.info(f"Modifications applied to {file_path} successfully.")
+            print(colored(f"已成功將更改應用於 {file_path}.", "green"))
+            logging.info(f"已成功將更改應用於 {file_path}.")
             return True
         else:
-            print(colored(f"Changes not applied to {file_path}.", "red"))
-            logging.info(f"User chose not to apply changes to {file_path}.")
+            print(colored(f"未將更改應用於 {file_path}.", "red"))
+            logging.info(f"用戶選擇不將更改應用於 {file_path}.")
             return False
 
     except Exception as e:
-        print(colored(f"An error occurred while applying modifications to {file_path}: {e}", "red"))
-        logging.error(f"Error applying modifications to {file_path}: {e}")
+        print(colored(f"在應用更改到 {file_path} 時發生錯誤: {e}", "red"))
+        logging.error(f"在應用更改到 {file_path} 時發生錯誤: {e}")
         return False
 
 def display_diff(old_content, new_content, file_path):
@@ -280,7 +275,7 @@ lineterm='',
 n=5
 ))
     if not diff:
-        print(f"No changes detected in {file_path}")
+        print(f"在 {file_path} 中未檢測到更改")
         return
     console = Console()
     table = Table(title=f"Diff for {file_path}")
@@ -305,10 +300,10 @@ def apply_creation_steps(creation_response, added_files, retry_count=0):
     try:
         code_blocks = re.findall(r'```(?:\w+)?\s*([\s\S]*?)```', creation_response)
         if not code_blocks:
-            raise ValueError("No code blocks found in the AI response.")
+            raise ValueError("在 AI 回應中未找到程式碼區塊。")
 
-        print("Successfully extracted code blocks:")
-        logging.info("Successfully extracted code blocks from creation response.")
+        print("成功提取程式碼區塊:")
+        logging.info("成功從創建回應中提取程式碼區塊。")
 
         for code in code_blocks:
             # Extract file/folder information from the special comment line
@@ -320,8 +315,8 @@ def apply_creation_steps(creation_response, added_files, retry_count=0):
                 if item_type == 'FOLDER':
                     # Create the folder
                     os.makedirs(path, exist_ok=True)
-                    print(colored(f"Folder created: {path}", "green"))
-                    logging.info(f"Folder created: {path}")
+                    print(colored(f"創建資料夾: {path}", "green"))
+                    logging.info(f"創建資料夾: {path}")
                 elif item_type == 'FILE':
                     # Extract file content (everything after the special comment line)
                     file_content = re.sub(r'### FILE: .+\n', '', code, count=1).strip()
@@ -330,26 +325,26 @@ def apply_creation_steps(creation_response, added_files, retry_count=0):
                     directory = os.path.dirname(path)
                     if directory and not os.path.exists(directory):
                         os.makedirs(directory, exist_ok=True)
-                        print(colored(f"Folder created: {directory}", "green"))
-                        logging.info(f"Folder created: {directory}")
+                        print(colored(f"創建資料夾: {directory}", "green"))
+                        logging.info(f"創建資料夾: {directory}")
 
                     # Write content to the file
                     with open(path, 'w', encoding='utf-8') as f:
                         f.write(file_content)
-                    print(colored(f"File created: {path}", "green"))
-                    logging.info(f"File created: {path}")
+                    print(colored(f"創建檔案: {path}", "green"))
+                    logging.info(f"創建檔案: {path}")
             else:
-                print(colored("Error: Could not determine the file or folder information from the code block.", "red"))
-                logging.error("Could not determine the file or folder information from the code block.")
+                print(colored("錯誤: 無法從程式碼區塊中確定檔案或資料夾資訊。", "red"))
+                logging.error("無法從程式碼區塊中確定檔案或資料夾資訊。")
                 continue
 
         return True
 
     except ValueError as e:
         if retry_count < max_retries:
-            print(colored(f"Error: {str(e)} Retrying... (Attempt {retry_count + 1})", "red"))
-            logging.warning(f"Creation parsing failed: {str(e)}. Retrying... (Attempt {retry_count + 1})")
-            error_message = f"{str(e)} Please provide the creation instructions again using the specified format."
+            print(colored(f"錯誤: {str(e)} 重試... (嘗試 {retry_count + 1})", "red"))
+            logging.warning(f"創建解析失敗: {str(e)}. 重試... (嘗試 {retry_count + 1})")
+            error_message = f"{str(e)} 請再次提供使用指定格式的創建指令。"
             time.sleep(2 ** retry_count)  # Exponential backoff
             new_response = chat_with_ai(error_message, is_edit_request=False, added_files=added_files)
             if new_response:
@@ -357,14 +352,14 @@ def apply_creation_steps(creation_response, added_files, retry_count=0):
             else:
                 return False
         else:
-            print(colored(f"Failed to parse creation instructions after multiple attempts: {str(e)}", "red"))
-            logging.error(f"Failed to parse creation instructions after multiple attempts: {str(e)}")
-            print("Creation response that failed to parse:")
+            print(colored(f"創建回應失敗: {str(e)}", "red"))
+            logging.error(f"創建回應失敗: {str(e)}")
+            print("創建回應失敗:")
             print(creation_response)
             return False
     except Exception as e:
-        print(colored(f"An unexpected error occurred during creation: {e}", "red"))
-        logging.error(f"An unexpected error occurred during creation: {e}")
+        print(colored(f"創建回應失敗: {e}", "red"))
+        logging.error(f"創建回應失敗: {e}")
         return False
 
 
@@ -429,11 +424,11 @@ def chat_with_ai(user_message, is_edit_request=False, retry_count=0, added_files
         ]
         
         if is_edit_request and retry_count == 0:
-            print(colored("Analyzing files and generating modifications...", "magenta"))
-            logging.info("Sending edit request to AI.")
+            print(colored("分析文件並生成修改...", "magenta"))
+            logging.info("分析文件並生成修改...")
         elif not is_edit_request:
-            print(colored("Software engineer is thinking...", "magenta"))
-            logging.info("Sending general query to AI.")
+            print(colored("軟體工程師正在思考...", "magenta"))
+            logging.info("發送一般查詢到 AI.")
 
         response = client.chat.completions.create(
             model=MODEL,  # 在這裡使用 MODEL 變量
@@ -452,8 +447,8 @@ def chat_with_ai(user_message, is_edit_request=False, retry_count=0, added_files
 
         return last_ai_response
     except Exception as e:
-        print(colored(f"Error while communicating with OpenAI: {e}", "red"))
-        logging.error(f"Error while communicating with OpenAI: {e}")
+        print(colored(f"與 Stima API 通訊時發生錯誤: {e}", "red"))
+        logging.error(f"與 Stima API 通訊時發生錯誤: {e}")
         return None
     
 
@@ -461,9 +456,9 @@ def chat_with_ai(user_message, is_edit_request=False, retry_count=0, added_files
 def main():
     global last_ai_response, conversation_history, client, MODEL
 
-    parser = argparse.ArgumentParser(description="Stima Engineer CLI")
-    parser.add_argument("--api_key", help="API key for OpenAI-compatible API")
-    parser.add_argument("--model", help="Model to use", default="claude-3-5-sonnet-20240620")
+    parser = argparse.ArgumentParser(description="Stima 助理工程師 CLI")
+    parser.add_argument("--api-key", help="請輸入您的 Stima API Key")
+    parser.add_argument("--model", help="請輸入模型名稱, 預設使用 Anthropic Claude 3.5 Sonnet", default="claude-3-5-sonnet-20240620")
     args = parser.parse_args()
     
     # 定義全局 MODEL 變量
@@ -477,15 +472,14 @@ def main():
 
     print(colored(f"Stima engineer is ready to help you. Using model: {MODEL}", "cyan"))
     print("\nAvailable commands:")
-    print(f"{colored('/edit', 'magenta'):<10} {colored('Edit files or directories (followed by paths)', 'dark_grey')}")
-    print(f"{colored('/create', 'magenta'):<10} {colored('Create files or folders (followed by instructions)', 'dark_grey')}")
-    print(f"{colored('/add', 'magenta'):<10} {colored('Add files or folders to context', 'dark_grey')}")
-    print(f"{colored('/debug', 'magenta'):<10} {colored('Print the last AI response', 'dark_grey')}")
-    print(f"{colored('/reset', 'magenta'):<10} {colored('Reset chat context and clear added files', 'dark_grey')}")
-    print(f"{colored('/review', 'magenta'):<10} {colored('Review code files (followed by file paths)', 'dark_grey')}")
-    print(f"{colored('/planning', 'magenta'):<10} {colored('Generate a detailed plan based on your request', 'dark_grey')}")
-    print(f"{colored('/quit', 'magenta'):<10} {colored('Exit the program', 'dark_grey')}")
-
+    print(f"{colored('/edit', 'magenta'):<10} {colored('編輯文件或目錄 (跟隨路徑)', 'dark_grey')}")
+    print(f"{colored('/create', 'magenta'):<10} {colored('創建文件或文件夾 (跟隨指令)', 'dark_grey')}")
+    print(f"{colored('/add', 'magenta'):<10} {colored('添加文件或文件夾到上下文', 'dark_grey')}")
+    print(f"{colored('/debug', 'magenta'):<10} {colored('印出最後的 AI 回應', 'dark_grey')}")
+    print(f"{colored('/reset', 'magenta'):<10} {colored('重置聊天上下文並清除添加的文件', 'dark_grey')}")
+    print(f"{colored('/review', 'magenta'):<10} {colored('審查代碼文件 (跟隨文件路徑)', 'dark_grey')}")
+    print(f"{colored('/planning', 'magenta'):<10} {colored('生成基於您請求的詳細計劃', 'dark_grey')}")
+    print(f"{colored('/quit', 'magenta'):<10} {colored('退出腳本', 'dark_grey')}")
     style = Style.from_dict({
         'prompt': 'cyan',
     })
@@ -522,14 +516,14 @@ def main():
             conversation_history = []
             added_files.clear()
             last_ai_response = None
-            print(colored("Chat context and added files have been reset.", "green"))
-            logging.info("Chat context and added files have been reset by the user.")
+            print(colored("聊天上下文和添加的文件已重置。", "green"))
+            logging.info("聊天上下文和添加的文件已重置。")
 
         elif user_input.startswith('/add'):
             paths = user_input.split()[1:]
             if not paths:
-                print(colored("Please provide at least one file or folder path.", "red"))
-                logging.warning("User issued /add without file or folder paths.")
+                print(colored("請提供至少一個文件或文件夾路徑。", "red"))
+                logging.warning("用戶發送 /add 而沒有文件或文件夾路徑。")
                 continue
 
             for path in paths:
@@ -543,18 +537,18 @@ def main():
                             file_path = os.path.join(root, file)
                             add_file_to_context(file_path, added_files)
                 else:
-                    print(colored(f"Error: {path} is neither a file nor a directory.", "red"))
-                    logging.error(f"{path} is neither a file nor a directory.")
+                    print(colored(f"錯誤: {path} 既不是文件也不是目錄。", "red"))
+                    logging.error(f"{path} 既不是文件也不是目錄。")
             total_size = sum(len(content) for content in added_files.values())
             if total_size > 100000:  # Warning if total content exceeds ~100KB
-                print(colored("Warning: The total size of added files is large and may affect performance.", "red"))
-                logging.warning("Total size of added files exceeds 100KB.")
+                print(colored("警告: 添加的文件總大小可能會影響性能。", "red"))
+                logging.warning("添加的文件總大小超過 100KB。")
 
         elif user_input.startswith('/edit'):
             paths = user_input.split()[1:]
             if not paths:
-                print(colored("Please provide at least one file or folder path.", "red"))
-                logging.warning("User issued /edit without file or folder paths.")
+                print(colored("請提供至少一個文件或文件夾路徑。", "red"))
+                logging.warning("用戶發送 /edit 而沒有文件或文件夾路徑。")
                 continue
             for path in paths:
                 if os.path.isfile(path):
@@ -567,10 +561,10 @@ def main():
                             file_path = os.path.join(root, file)
                             add_file_to_context(file_path, added_files)
                 else:
-                    print(colored(f"Error: {path} is neither a file nor a directory.", "red"))
-                    logging.error(f"{path} is neither a file nor a directory.")
+                    print(colored(f"錯誤: {path} 既不是文件也不是目錄。", "red"))
+                    logging.error(f"{path} 既不是文件也不是目錄。")
             if not added_files:
-                print(colored("No valid files to edit.", "red"))
+                print(colored("沒有有效的文件可以編輯。", "red"))
                 continue
             edit_instruction = prompt(f"Edit Instruction for all files: ", style=style).strip()
 
@@ -584,24 +578,24 @@ Files to modify:
             ai_response = chat_with_ai(edit_request, is_edit_request=True, added_files=added_files)
             
             if ai_response:
-                print("Software engineer: Here are the suggested edit instructions:")
+                print("軟體工程師: 以下是建議的編輯指令:")
                 rprint(Markdown(ai_response))
 
-                confirm = prompt("Do you want to apply these edit instructions? (yes/no): ", style=style).strip().lower()
+                confirm = prompt("你想要應用這些編輯指令嗎? (yes/no): ", style=style).strip().lower()
                 if confirm == 'yes':
                     edit_instructions = parse_edit_instructions(ai_response)
                     modified_files = apply_edit_instructions(edit_instructions, added_files)
                     for file_path, new_content in modified_files.items():
                         apply_modifications(new_content, file_path)
                 else:
-                    print(colored("Edit instructions not applied.", "red"))
-                    logging.info("User chose not to apply edit instructions.")
+                    print(colored("編輯指令未應用。", "red"))
+                    logging.info("用戶選擇不應用編輯指令。")
 
         elif user_input.startswith('/create'):
             creation_instruction = user_input[7:].strip()  # Remove '/create' and leading/trailing whitespace
             if not creation_instruction:
-                print(colored("Please provide creation instructions after /create.", "red"))
-                logging.warning("User issued /create without instructions.")
+                print(colored("請在 /create 後提供創建指令。", "red"))
+                logging.warning("用戶發送 /create 而沒有指令。")
                 continue
 
             create_request = f"{CREATE_SYSTEM_PROMPT}\n\nUser request: {creation_instruction}"
@@ -609,29 +603,29 @@ Files to modify:
             
             if ai_response:
                 while True:
-                    print("Software engineer: Here is the suggested creation structure:")
+                    print("軟體工程師: 以下是建議的創建結構:")
                     rprint(Markdown(ai_response))
 
-                    confirm = prompt("Do you want to execute these creation steps? (yes/no): ", style=style).strip().lower()
+                    confirm = prompt("你想要執行這些創建步驟嗎? (yes/no): ", style=style).strip().lower()
                     if confirm == 'yes':
                         success = apply_creation_steps(ai_response, added_files)
                         if success:
                             break
                         else:
-                            retry = prompt("Creation failed. Do you want the AI to try again? (yes/no): ", style=style).strip().lower()
+                            retry = prompt("創建失敗。你想要 AI 再次嘗試嗎? (yes/no): ", style=style).strip().lower()
                             if retry != 'yes':
                                 break
                             ai_response = chat_with_ai("The previous creation attempt failed. Please try again with a different approach.", is_edit_request=False, added_files=added_files)
                     else:
-                        print(colored("Creation steps not executed.", "red"))
-                        logging.info("User chose not to execute creation steps.")
+                        print(colored("創建步驟未執行。", "red"))
+                        logging.info("用戶選擇不執行創建步驟。")
                         break
 
         elif user_input.startswith('/review'):
             paths = user_input.split()[1:]
             if not paths:
-                print(colored("Please provide at least one file or folder path.", "red"))
-                logging.warning("User issued /review without file or folder paths.")
+                print(colored("請提供至少一個文件或文件夾路徑。", "red"))
+                logging.warning("用戶發送 /review 而沒有文件或文件夾路徑。")
                 continue
 
             file_contents = {}
@@ -646,50 +640,50 @@ Files to modify:
                             file_path = os.path.join(root, file)
                             add_file_to_context(file_path, file_contents, action='to review')
                 else:
-                    print(colored(f"Error: {path} is neither a file nor a directory.", "red"))
-                    logging.error(f"{path} is neither a file nor a directory.")
+                    print(colored(f"錯誤: {path} 既不是文件也不是目錄。", "red"))
+                    logging.error(f"{path} 既不是文件也不是目錄。")
 
             if not file_contents:
-                print(colored("No valid files to review.", "red"))
+                print(colored("沒有有效的文件可以審查。", "red"))
                 continue
 
             review_request = f"{CODE_REVIEW_PROMPT}\n\nFiles to review:\n"
             for file_path, content in file_contents.items():
                 review_request += f"\nFile: {file_path}\nContent:\n{content}\n\n"
 
-            print(colored("Analyzing code and generating review...", "magenta"))
+            print(colored("分析程式碼並生成審查...", "magenta"))
             ai_response = chat_with_ai(review_request, is_edit_request=False, added_files=added_files)
             
             if ai_response:
                 print()
-                print(colored("Code Review:", "blue"))
+                print(colored("程式碼審查:", "blue"))
                 rprint(Markdown(ai_response))
-                logging.info("Provided code review for requested files.")
+                logging.info("提供程式碼審查給請求的文件。")
 
         elif user_input.startswith('/planning'):
             planning_instruction = user_input[9:].strip()  # Remove '/planning' and leading/trailing whitespace
             if not planning_instruction:
-                print(colored("Please provide a planning request after /planning.", "red"))
-                logging.warning("User issued /planning without instructions.")
+                print(colored("請在 /planning 後提供計劃請求。", "red"))
+                logging.warning("用戶發送 /planning 而沒有指令。")
                 continue
             planning_request = f"{PLANNING_PROMPT}\n\nUser request: {planning_instruction}"
             ai_response = chat_with_ai(planning_request, is_edit_request=False, added_files=added_files)
             if ai_response:
                 print()
-                print(colored("Software engineer: Here is your detailed plan:", "blue"))
+                print(colored("軟體工程師: 以下是你的詳細計劃:", "blue"))
                 rprint(Markdown(ai_response))
-                logging.info("Provided planning response to user.")
+                logging.info("提供計劃回應給用戶。")
             else:
-                print(colored("Failed to generate a planning response. Please try again.", "red"))
-                logging.error("AI failed to generate a planning response.")
+                print(colored("生成計劃回應失敗。請再試一次。", "red"))
+                logging.error("AI 生成計劃回應失敗。")
 
         else:
             ai_response = chat_with_ai(user_input, added_files=added_files)
             if ai_response:
                 print()
-                print(colored("Software engineer:", "blue"))
+                print(colored("軟體工程師:", "blue"))
                 rprint(Markdown(ai_response))
-                logging.info("Provided AI response to user query.")
+                logging.info("提供 AI 回應給用戶查詢。")
 
 
 
