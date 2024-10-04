@@ -2,7 +2,7 @@
 
 ![Updated Features](https://img.shields.io/badge/Features-Updated-brightgreen)
 
-A command-line tool designed to assist developers in managing and interacting with their projects efficiently. Leveraging the power of Stima API, stima-engineer provides functionalities such as code generation, file editing, project planning, and code review to streamline your development workflow.
+一個專為開發者設計的命令行工具，旨在高效管理和互動他們的專案。利用Stima API的強大功能，stima-engineer提供代碼生成、文件編輯、專案規劃和代碼審查等功能，以簡化您的開發流程。
 
 ## 🛠️ Updated Features
 
@@ -48,7 +48,7 @@ A command-line tool designed to assist developers in managing and interacting wi
 
 - **Python**: Ensure you have Python 3.7 or higher installed. [Download Python](https://www.python.org/downloads/)
 
-- **OpenAI API Key**: Obtain an API key from [OpenAI](https://platform.openai.com/).
+- **Stima API Key**: Obtain an API key from [Stima API](https://api.stima.tech).
 
 ### 🔧 Steps
 
