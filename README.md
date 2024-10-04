@@ -1,4 +1,4 @@
-# 🛠️ Claude Engineer
+# 🛠️ Stima Engineer
 
 ![Updated Features](https://img.shields.io/badge/Features-Updated-brightgreen)
 
